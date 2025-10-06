@@ -1,1 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rabbit OS2 Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark light;
+      font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #05030a;
+      --fg: #f7f4ff;
+      --accent: #ff6bd6;
+      --accent-strong: #ed40be;
+      --card: rgba(12, 8, 24, 0.82);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --muted: rgba(255, 255, 255, 0.68);
+      --shadow: 0 28px 80px rgba(56, 10, 112, 0.28);
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 15% 20%, rgba(255, 0, 196, 0.16), transparent 40%),
+        radial-gradient(circle at 85% 15%, rgba(0, 189, 255, 0.12), transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(255, 186, 0, 0.18), transparent 45%),
+        var(--bg);
+      color: var(--fg);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    header {
+      padding: 2rem clamp(1.5rem, 4vw, 4rem) 1rem;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    h1 span {
+      display: inline-flex;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.9rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 12px 30px rgba(237, 64, 190, 0.45);
+    }
+
+    header p {
+      margin-top: 1rem;
+      max-width: 720px;
+      line-height: 1.6;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.75rem;
+      padding: 0 clamp(1.5rem, 4vw, 4rem) 3rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 1.4rem;
+      border: 1px solid var(--card-border);
+      padding: 1.75rem;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    button, .button-like {
+      border: none;
+      border-radius: 999px;
+      padding: 0.75rem 1.35rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #190016;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 14px 36px rgba(237, 64, 190, 0.32);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--fg);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    button:hover:not(:disabled),
+    .button-like:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(237, 64, 190, 0.38);
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--fg);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 107, 214, 0.32);
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .qr-output {
+      width: 100%;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 1.1rem;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+    }
+
+    .history {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .history li {
+      padding: 1rem 1.2rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .history li strong {
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    .history li span {
+      font-size: 1.02rem;
+      line-height: 1.5;
+    }
+
+    .status-text {
+      font-size: 0.95rem;
+      color: var(--muted);
+      min-height: 1.3em;
+    }
+
+    .audio-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 0.65rem;
+    }
+
+    .tag {
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    footer {
+      padding: 2rem clamp(1.5rem, 4vw, 4rem) 3rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>🐇</span>Rabbit OS2 Companion Control</h1>
+    <p>
+      Activate your Rabbit OS2 creations from GitHub, queue unique prompts, and orchestrate sonic and conversational
+      capture—all from a single dashboard built for makers. Generate an activation QR code, spark fresh questions for
+      your assistant, capture high-fidelity audio snippets, and maintain a searchable conversation trail that adapts in
+      real time.
+    </p>
+  </header>
+  <main>
+    <section class="card" aria-labelledby="activation-title">
+      <div class="stacked">
+        <h2 id="activation-title">Activation QR</h2>
+        <p>Paste the Rabbit OS GitHub repository or deployment URL to generate an activation QR code for OS2 devices.</p>
+        <label for="activation-url">Activation link</label>
+        <input id="activation-url" type="url" placeholder="https://github.com/rabbit-os/your-project" />
+        <div class="audio-controls">
+          <button id="generate-qr" type="button">Generate QR</button>
+          <button id="download-qr" class="secondary" type="button" disabled>Download PNG</button>
+        </div>
+        <div id="qr-output" class="qr-output" role="img" aria-live="polite" aria-label="QR code output area">
+          <span class="tag">QR output</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="question-title">
+      <h2 id="question-title">Adaptive Prompting</h2>
+      <p>Trigger Rabbit OS2 to ask a never-before-served prompt and keep the session moving with context-aware follow ups.</p>
+      <button id="new-question" type="button">Ask a new unique question</button>
+      <div class="status-text" id="question-status">No question sent yet.</div>
+      <label for="custom-question">Inject a custom prompt</label>
+      <textarea id="custom-question" placeholder="Describe the most surprising interaction you've had with Rabbit OS..."></textarea>
+      <button id="submit-question" class="secondary" type="button">Send custom question</button>
+    </section>
+
+    <section class="card" aria-labelledby="audio-title">
+      <h2 id="audio-title">Momentary Capture</h2>
+      <p>Record crystal-clear clips to annotate your project log. Play back immediately or attach to a dispatch.</p>
+      <div class="audio-controls">
+        <button id="record-toggle" type="button">Start record &bull; clip</button>
+        <button id="playback-toggle" class="secondary" type="button" disabled>Playback latest</button>
+        <a id="download-clip" class="button-like secondary" download="rabbit-os2-clip.webm" hidden>Download clip</a>
+      </div>
+      <div class="status-text" id="record-status">Recorder idle.</div>
+      <audio id="clip-audio" controls hidden></audio>
+    </section>
+
+    <section class="card" aria-labelledby="conversation-title">
+      <h2 id="conversation-title">Conversation Studio</h2>
+      <p>Listen, transcribe, and evolve the dialogue. Captured responses feed forward into the next Rabbit prompt.</p>
+      <div class="audio-controls">
+        <button id="listen-toggle" type="button">Listen &amp; transcribe</button>
+        <button id="global-record-toggle" class="secondary" type="button">Record conversation</button>
+      </div>
+      <div class="status-text" id="listen-status">Listener idle.</div>
+      <div class="status-text" id="global-record-status">Conversation recorder idle.</div>
+      <audio id="global-audio" controls hidden></audio>
+      <a id="download-conversation" class="button-like secondary" download="rabbit-os2-conversation.webm" hidden>Download conversation</a>
+      <div>
+        <h3 class="tag">Live timeline</h3>
+        <ul id="history" class="history" aria-live="polite" aria-label="Conversation history"></ul>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Built for the Rabbit OS builder community. Every interaction is handled locally in your browser; no recordings leave
+    this device.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" integrity="sha256-ZC0BpvyEukgqS0bkkCm1cW0XkyKADVY6jwxKF1uHmII=" crossorigin="anonymous"></script>
+  <script>
+    const questions = [
+      "What inspired your current Rabbit OS build, and which GitHub issue sparked the idea?",
+      "How does this Rabbit OS2 skill change a daily habit for you?",
+      "Describe a surprising edge case your Rabbit assistant solved this week.",
+      "What new capability would delight your Rabbit OS2 users tomorrow?",
+      "How did a collaborator's feedback on GitHub reshape today's iteration?",
+      "Where could Rabbit OS2 automate a task you still do manually?",
+      "What pattern emerged after your latest Rabbit OS2 field test?",
+      "Which open pull request deserves Rabbit's immediate attention?"
+    ];
+
+    const historyEl = document.getElementById("history");
+    const questionStatus = document.getElementById("question-status");
+    const listenStatus = document.getElementById("listen-status");
+    const globalRecordStatus = document.getElementById("global-record-status");
+
+    let questionIndex = 0;
+    let lastResponse = "";
+
+    const addHistoryItem = (role, text) => {
+      const item = document.createElement("li");
+      const label = document.createElement("strong");
+      label.textContent = role;
+      const span = document.createElement("span");
+      span.textContent = text;
+      item.append(label, span);
+      historyEl.prepend(item);
+    };
+
+    const generateFollowUp = (response) => {
+      if (!response) {
+        return "What's the next Rabbit OS2 milestone you'd like to hit?";
+      }
+      const responseLower = response.toLowerCase();
+      if (responseLower.includes("bug") || responseLower.includes("issue")) {
+        return "Which Rabbit OS2 module should investigate that issue next?";
+      }
+      if (responseLower.includes("idea") || responseLower.includes("feature")) {
+        return "Who could beta test that feature in your community?";
+      }
+      if (responseLower.includes("collab") || responseLower.includes("team")) {
+        return "How will you sync the Rabbit OS2 squad on this update?";
+      }
+      return `What's the very next Rabbit OS2 action after: ${response}?`;
+    };
+
+    // QR Code generation
+    const qrButton = document.getElementById("generate-qr");
+    const qrDownload = document.getElementById("download-qr");
+    const qrOutput = document.getElementById("qr-output");
+    let qrCanvas = null;
+
+    qrButton.addEventListener("click", () => {
+      const urlInput = document.getElementById("activation-url");
+      const value = urlInput.value.trim();
+      if (!value) {
+        questionStatus.textContent = "Add an activation link before generating a QR code.";
+        questionStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        return;
+      }
+      QRCode.toCanvas(value, { width: 256, margin: 1, color: { dark: "#0a0018", light: "#ffffff" } }, (err, canvas) => {
+        if (err) {
+          qrOutput.innerHTML = "<span>Failed to generate QR code.</span>";
+          qrDownload.disabled = true;
+          return;
+        }
+        qrCanvas = canvas;
+        qrOutput.innerHTML = "";
+        qrOutput.appendChild(canvas);
+        qrOutput.setAttribute("aria-label", `QR code for ${value}`);
+        const dataUrl = canvas.toDataURL("image/png");
+        qrDownload.href = dataUrl;
+        qrDownload.disabled = false;
+        qrDownload.hidden = false;
+      });
+    });
+
+    qrDownload.addEventListener("click", () => {
+      if (!qrCanvas) {
+        return;
+      }
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      qrDownload.setAttribute("download", `rabbit-os2-activation-${timestamp}.png`);
+    });
+
+    // Question controls
+    const newQuestionButton = document.getElementById("new-question");
+    const submitQuestionButton = document.getElementById("submit-question");
+    const customQuestion = document.getElementById("custom-question");
+
+    const postQuestion = (text, source = "Rabbit OS2") => {
+      addHistoryItem(`${source} prompt`, text);
+      questionStatus.textContent = text;
+      questionStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+
+    newQuestionButton.addEventListener("click", () => {
+      let question;
+      if (questionIndex < questions.length) {
+        question = questions[questionIndex];
+        questionIndex += 1;
+      } else {
+        const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+        question = `What's the OS2 insight coded as #${suffix}?`;
+      }
+      if (lastResponse) {
+        question = generateFollowUp(lastResponse);
+        lastResponse = "";
+      }
+      postQuestion(question);
+    });
+
+    submitQuestionButton.addEventListener("click", () => {
+      const value = customQuestion.value.trim();
+      if (!value) {
+        questionStatus.textContent = "Enter a custom prompt to send.";
+        return;
+      }
+      postQuestion(value, "Custom");
+      customQuestion.value = "";
+    });
+
+    // Audio recording helpers
+    const recordToggle = document.getElementById("record-toggle");
+    const playbackToggle = document.getElementById("playback-toggle");
+    const recordStatus = document.getElementById("record-status");
+    const clipAudio = document.getElementById("clip-audio");
+    const downloadClip = document.getElementById("download-clip");
+
+    let mediaStream = null;
+    let recorder = null;
+    let clipChunks = [];
+    let clipUrl = "";
+
+    const ensureStream = async () => {
+      if (mediaStream) return mediaStream;
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      return mediaStream;
+    };
+
+    const resetClip = () => {
+      clipChunks = [];
+      if (clipUrl) {
+        URL.revokeObjectURL(clipUrl);
+      }
+      clipUrl = "";
+      clipAudio.hidden = true;
+      downloadClip.hidden = true;
+      playbackToggle.disabled = true;
+    };
+
+    recordToggle.addEventListener("click", async () => {
+      if (recorder && recorder.state === "recording") {
+        recorder.stop();
+        recordToggle.textContent = "Start record • clip";
+        recordStatus.textContent = "Processing clip...";
+        return;
+      }
+      try {
+        const stream = await ensureStream();
+        resetClip();
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (event) => {
+          if (event.data.size) {
+            clipChunks.push(event.data);
+          }
+        };
+        recorder.onstop = () => {
+          const blob = new Blob(clipChunks, { type: "audio/webm" });
+          clipUrl = URL.createObjectURL(blob);
+          clipAudio.src = clipUrl;
+          clipAudio.hidden = false;
+          playbackToggle.disabled = false;
+          downloadClip.href = clipUrl;
+          downloadClip.hidden = false;
+          recordStatus.textContent = "Clip ready.";
+        };
+        recorder.start();
+        recordToggle.textContent = "Stop recording";
+        recordStatus.textContent = "Recording...";
+      } catch (error) {
+        recordStatus.textContent = "Microphone permission is required.";
+      }
+    });
+
+    playbackToggle.addEventListener("click", () => {
+      if (!clipUrl) return;
+      clipAudio.currentTime = 0;
+      clipAudio.play();
+    });
+
+    // Conversation recording
+    const globalRecordToggle = document.getElementById("global-record-toggle");
+    const globalAudio = document.getElementById("global-audio");
+    const downloadConversation = document.getElementById("download-conversation");
+    let globalRecorder = null;
+    let globalChunks = [];
+    let globalUrl = "";
+
+    const resetGlobalClip = () => {
+      globalChunks = [];
+      if (globalUrl) {
+        URL.revokeObjectURL(globalUrl);
+      }
+      globalUrl = "";
+      globalAudio.hidden = true;
+      downloadConversation.hidden = true;
+    };
+
+    globalRecordToggle.addEventListener("click", async () => {
+      if (globalRecorder && globalRecorder.state === "recording") {
+        globalRecorder.stop();
+        globalRecordToggle.textContent = "Record conversation";
+        globalRecordStatus.textContent = "Finalizing conversation log...";
+        return;
+      }
+      try {
+        const stream = await ensureStream();
+        resetGlobalClip();
+        globalRecorder = new MediaRecorder(stream);
+        globalRecorder.ondataavailable = (event) => {
+          if (event.data.size) {
+            globalChunks.push(event.data);
+          }
+        };
+        globalRecorder.onstop = () => {
+          const blob = new Blob(globalChunks, { type: "audio/webm" });
+          globalUrl = URL.createObjectURL(blob);
+          globalAudio.src = globalUrl;
+          globalAudio.hidden = false;
+          downloadConversation.href = globalUrl;
+          downloadConversation.hidden = false;
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          downloadConversation.setAttribute("download", `rabbit-os2-conversation-${timestamp}.webm`);
+          globalRecordStatus.textContent = "Conversation capture ready.";
+        };
+        globalRecorder.start();
+        globalRecordToggle.textContent = "Stop conversation recording";
+        globalRecordStatus.textContent = "Recording full conversation...";
+      } catch (error) {
+        globalRecordStatus.textContent = "Microphone permission is required for conversation capture.";
+      }
+    });
+
+    // Speech recognition
+    const listenToggle = document.getElementById("listen-toggle");
+    let recognition = null;
+    let listening = false;
+
+    const setupRecognition = () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        listenStatus.textContent = "Speech recognition is unavailable in this browser.";
+        listenToggle.disabled = true;
+        return null;
+      }
+      const recognizer = new SpeechRecognition();
+      recognizer.lang = "en-US";
+      recognizer.interimResults = true;
+      recognizer.continuous = true;
+      return recognizer;
+    };
+
+    listenToggle.addEventListener("click", () => {
+      if (!recognition) {
+        recognition = setupRecognition();
+        if (!recognition) return;
+        recognition.onstart = () => {
+          listenStatus.textContent = "Listening... speak now.";
+        };
+        recognition.onresult = (event) => {
+          const last = event.results[event.results.length - 1];
+          if (last.isFinal) {
+            const transcript = last[0].transcript.trim();
+            if (transcript) {
+              lastResponse = transcript;
+              addHistoryItem("User", transcript);
+              const followUp = generateFollowUp(transcript);
+              addHistoryItem("Rabbit OS2 follow-up", followUp);
+              questionStatus.textContent = followUp;
+            }
+          } else {
+            listenStatus.textContent = `Heard: ${last[0].transcript}`;
+          }
+        };
+        recognition.onerror = (event) => {
+          listenStatus.textContent = `Listener error: ${event.error}`;
+        };
+        recognition.onend = () => {
+          listening = false;
+          listenToggle.textContent = "Listen & transcribe";
+          listenStatus.textContent = "Listener idle.";
+        };
+      }
+      if (listening) {
+        recognition.stop();
+        return;
+      }
+      try {
+        recognition.start();
+        listening = true;
+        listenToggle.textContent = "Stop listening";
+      } catch (error) {
+        listenStatus.textContent = "Unable to start listener.";
+      }
+    });
+  </script>
+</body>
+</html>
